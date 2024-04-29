@@ -124,7 +124,6 @@ std::string decodeText(cv::Mat& image, int bitWidth) {
 
                 // Process character every other pixel
                 if (!evenPixel) {
-                    if (character == 0) return text;
                     text += character;
                     character = 0;
                 }
@@ -134,7 +133,6 @@ std::string decodeText(cv::Mat& image, int bitWidth) {
                 for (int k = 0; k < 8; k++)
                     character |= (((pixel[k / 2] % 4) >> (k % 2)) & 1) << k;
 
-                if (character == 0) return text;
                 text += character;
                 character = 0;
             }
@@ -147,7 +145,6 @@ std::string decodeText(cv::Mat& image, int bitWidth) {
                         if (l == 3) pixelIdx++;
                     }
 
-                    if (character == 0) return text;
                     text += character;
                     character = 0;
                 }

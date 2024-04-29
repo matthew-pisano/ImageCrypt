@@ -10,6 +10,8 @@ include_directories(include lib)
 add_executable(icrypt src/main.cpp
         src/image_encode.cpp
         include/image_encode.h
+        src/encodings.cpp
+        include/encodings.h
         lib/CLI11/CLI11.hpp
 )
 
