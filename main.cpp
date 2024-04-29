@@ -145,22 +145,22 @@ void addAlphaChannel(Mat& image) {
 
 int main(int argc, char** argv) {
 
-    if (argc < 4 || argc > 5) {
-        cout << "Usage: icrypt <encrypt|decrypt> <TEXT_FILE> <INPUT_IMAGE> [OUTPUT_IMAGE]" << endl;
+    if (argc < 4 || argc > 6) {
+        cout << "Usage: icrypt <encrypt|decrypt> <TEXT_FILE> <INPUT_IMAGE> [OUTPUT_IMAGE] [BIT_WIDTH]" << endl;
         return -1;
     }
     
     string mode = argv[1];
-    if (mode == "encrypt" && argc != 5) {
-        cout << "Usage: icrypt encrypt <TEXT_FILE> <INPUT_IMAGE> <OUTPUT_IMAGE>" << endl;
+    if (mode == "encrypt" && argc < 5) {
+        cout << "Usage: icrypt encrypt <TEXT_FILE> <INPUT_IMAGE> <OUTPUT_IMAGE> [BIT_WIDTH]" << endl;
         return -1;
     }
-    else if (mode == "decrypt" && argc != 4) {
-        cout << "Usage: icrypt decrypt <TEXT_FILE> <INPUT_IMAGE>" << endl;
+    else if (mode == "decrypt" && argc > 5) {
+        cout << "Usage: icrypt decrypt <TEXT_FILE> <INPUT_IMAGE> [BIT_WIDTH]" << endl;
         return -1;
     }
     else if (mode != "encrypt" && mode != "decrypt") {
-        cout << "Usage: icrypt <encrypt|decrypt> <TEXT_FILE> <INPUT_IMAGE> <OUTPUT_IMAGE>" << endl;
+        cout << "Usage: icrypt <encrypt|decrypt> <TEXT_FILE> <INPUT_IMAGE> <OUTPUT_IMAGE> [BIT_WIDTH]" << endl;
         return -1;
     }
 
@@ -168,7 +168,18 @@ int main(int argc, char** argv) {
     string inputImPth = argv[3];
     string outputImPth;
     if (mode == "encrypt") outputImPth = argv[4];
-    int bitWidth = 2;
+    int bitWidth = 1;
+    if (mode == "encrypt" && argc == 6) bitWidth = stoi(argv[5]);
+    else if (mode == "decrypt" && argc == 5) bitWidth = stoi(argv[4]);
+
+    if (bitWidth != 1 && bitWidth != 2 && bitWidth != 4) {
+        cout << "Error: Bit width must be 1, 2, or 4" << endl;
+        return -1;
+    }
+    if (outputImPth.find('.') == string::npos) {
+        cout << "Error: Output image path must have an extension" << endl;
+        return -1;
+    }
 
     string decodedText;
 
