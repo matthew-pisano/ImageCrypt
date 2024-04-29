@@ -6,88 +6,123 @@ using namespace cv;
 using namespace std;
 
 
-void preprocessImage(Mat& image) {
+void preprocessImage(Mat& image, int bitWidth) {
 
+    int bitMax = 1 << bitWidth;
+    int channelLimit = 256 - bitMax;
+    int channelSafeLimit = 256 - 2 * bitMax;
     for (int i = 0; i < image.rows; i++) {
         for (int j = 0; j < image.cols; j++) {
 
             Vec4b pixel = image.at<Vec4b>(i, j);
-            if (pixel[0] >= 252) pixel[0] = 248;
-            else pixel[0] = pixel[0] - (pixel[0] % 4);
+            if (pixel[0] >= channelLimit) pixel[0] = channelSafeLimit;
+            else pixel[0] = pixel[0] - (pixel[0] % bitMax);
 
-            if (pixel[1] >= 252) pixel[1] = 248;
-            else pixel[1] = pixel[1] - (pixel[1] % 4);
+            if (pixel[1] >= channelLimit) pixel[1] = channelSafeLimit;
+            else pixel[1] = pixel[1] - (pixel[1] % bitMax);
 
-            if (pixel[2] >= 252) pixel[2] = 248;
-            else pixel[2] = pixel[2] - (pixel[2] % 4);
+            if (pixel[2] >= channelLimit) pixel[2] = channelSafeLimit;
+            else pixel[2] = pixel[2] - (pixel[2] % bitMax);
 
-            if (pixel[3] >= 252) pixel[3] = 248;
-            else pixel[3] = pixel[3] - (pixel[3] % 4);
+            if (pixel[3] >= channelLimit) pixel[3] = channelSafeLimit;
+            else pixel[3] = pixel[3] - (pixel[3] % bitMax);
             image.at<Vec4b>(i, j) = pixel;
         }
     }
 }
 
 
-void encodeText(Mat& image, const string& text) {
+void encodeText(Mat& image, const string& text, int bitWidth) {
 
     int textLength = text.length();
     int textIndex = 0;
+    bool evenPixel = true;
 
     for (int i = 0; i < image.rows; i++) {
         for (int j = 0; j < image.cols; j++) {
 
             Vec4b pixel = image.at<Vec4b>(i, j);
 
-            for (int k = 0; k < 4; k++) {
-                if (pixel[k] % 4 != 0) {
-                    pixel[k] -= pixel[k] % 4;
+            if (textIndex < textLength) {
+                if (bitWidth == 1) {
+                    int shift = evenPixel ? 4 : 0;
+                    for (int k = 0; k < 4; k++)
+                        pixel[k] += (text[textIndex] >> (k + shift)) & 1;
+                    if (!evenPixel) textIndex++;
+                } else if (bitWidth == 2) {
+                    for (int k = 0; k < 4; k++)
+                        pixel[k] += ((text[textIndex] >> (k * 2)) & 1) + (((text[textIndex] >> (k * 2 + 1)) & 1) << 1);
+                    textIndex++;
+                }
+                else if (bitWidth == 4) {
+                    for (int k = 0; k < 2; k++) {
+                        for (int l = 0; l < 4; l++)
+                            pixel[k*2+1] += ((text[textIndex] >> l) & 1) << (3-l);
+                        for (int l = 4; l < 8; l++)
+                            pixel[k*2] += ((text[textIndex] >> l) & 1) << (7-l);
+                        textIndex++;
+                    }
                 }
             }
 
-            if (textIndex < textLength) {
-                pixel[0] += 2 * ((text[textIndex] >> 0) & 1) + ((text[textIndex] >> 1) & 1);
-                pixel[1] += 2 * ((text[textIndex] >> 2) & 1) + ((text[textIndex] >> 3) & 1);
-                pixel[2] += 2 * ((text[textIndex] >> 4) & 1) + ((text[textIndex] >> 5) & 1);
-                pixel[3] += 2 * ((text[textIndex] >> 6) & 1) + ((text[textIndex] >> 7) & 1);
-            } else if (textIndex > textLength+1) {
-                pixel[0] += rand() % 4;
-                pixel[1] += rand() % 4;
-                pixel[2] += rand() % 4;
-                pixel[3] += rand() % 4;
-            }
+            else if (textIndex > textLength + 1)
+                for (int k = 0; k < 4; k++)
+                    pixel[k] += rand() % (1 << bitWidth);
 
             image.at<Vec4b>(i, j) = pixel;
 
-            textIndex++;
+            evenPixel = !evenPixel;
         }
     }
 }
 
 
-string decodeText(Mat& image) {
+string decodeText(Mat& image, int bitWidth) {
 
     string text = "";
+    char character = 0;
+    bool evenPixel = true;
 
     for (int i = 0; i < image.rows; i++) {
         for (int j = 0; j < image.cols; j++) {
 
             Vec4b pixel = image.at<Vec4b>(i, j);
 
-            char character = 0;
-            character |= (((pixel[0] % 4) >> 1) & 1) << 0;
-            character |= (((pixel[0] % 4) >> 0) & 1) << 1;
-            character |= (((pixel[1] % 4) >> 1) & 1) << 2;
-            character |= (((pixel[1] % 4) >> 0) & 1) << 3;
-            character |= (((pixel[2] % 4) >> 1) & 1) << 4;
-            character |= (((pixel[2] % 4) >> 0) & 1) << 5;
-            character |= (((pixel[3] % 4) >> 1) & 1) << 6;
-            character |= (((pixel[3] % 4) >> 0) & 1) << 7;
+            if (bitWidth == 1) {
+                int shift = evenPixel ? 4 : 0;
+                for (int k = 0; k < 4; k++)
+                    character |= ((pixel[k] % 2) << (k + shift));
 
-            // Break if null character is found
-            if (character == 0) return text;
+                if (!evenPixel) {
+                    if (character == 0) return text;
+                    text += character;
+                    character = 0;
+                }
+            }
+            else if (bitWidth == 2) {
+                for (int k = 0; k < 8; k++)
+                    character |= (((pixel[k / 2] % 4) >> (k % 2)) & 1) << k;
 
-            text += character;
+                if (character == 0) return text;
+                text += character;
+                character = 0;
+            }
+            else if (bitWidth == 4) {
+                for (int k = 0; k < 2; k++) {
+
+                    int pixelIdx = k*2;
+                    for (int l = 0; l < 8; l++) {
+                        character |= (((pixel[pixelIdx] % 16) >> (l % 4)) & 1) << (7 - l);
+                        if (l == 3) pixelIdx++;
+                    }
+
+                    if (character == 0) return text;
+                    text += character;
+                    character = 0;
+                }
+            }
+
+            evenPixel = !evenPixel;
         }
     }
 
@@ -97,7 +132,7 @@ string decodeText(Mat& image) {
 
 void addAlphaChannel(Mat& image) {
 
-    cout << "Warning: Image does not have an alpha channel. Adding an alpha channel." << endl;
+    cout << "Warning: Image does not have an alpha channel. Adding an alpha channel to output image." << endl;
     vector<Mat> matChannels;
     split(image, matChannels);
 
@@ -133,6 +168,7 @@ int main(int argc, char** argv) {
     string inputImPth = argv[3];
     string outputImPth;
     if (mode == "encrypt") outputImPth = argv[4];
+    int bitWidth = 2;
 
     string decodedText;
 
@@ -171,13 +207,13 @@ int main(int argc, char** argv) {
             cout << "Warning: The last " << overflow << "character of text will be truncated!" << endl;
 
         Mat outputImage = image.clone();
-        preprocessImage(outputImage);
-        encodeText(outputImage, decodedText);
+        preprocessImage(outputImage, bitWidth);
+        encodeText(outputImage, decodedText, bitWidth);
         // Write the image
         imwrite(outputImPth, outputImage);
     }
     else {
-        decodedText = decodeText(image);
+        decodedText = decodeText(image, bitWidth);
         outFile << decodedText;
         outFile.close();
     }
