@@ -2,64 +2,70 @@
 #include <fstream>
 #include <opencv2/opencv.hpp>
 
+#include "CLI11/CLI11.hpp"
 #include "image_encode.h"
+
+
+std::string readInText(const std::string& txtPth) {
+    std::string decodedText;
+    std::ifstream inTxtFile(txtPth);
+    if (!inTxtFile.is_open()) {
+        std::cout << "Could not open file" << std::endl;
+        exit(-1);
+    }
+    std::string line;
+    while (getline(inTxtFile, line)) decodedText += line + "\n";
+    decodedText.pop_back(); // Remove last newline character
+    inTxtFile.close();
+
+    return decodedText;
+}
 
 
 int main(int argc, char** argv) {
 
-    if (argc < 4 || argc > 6) {
-        std::cout << "Usage: icrypt <encrypt|decrypt> <TEXT_FILE> <INPUT_IMAGE> [OUTPUT_IMAGE] [BIT_WIDTH]" << std::endl;
-        return -1;
-    }
-    
-    std::string mode = argv[1];
-    if (mode == "encrypt" && argc < 5) {
-        std::cout << "Usage: icrypt encrypt <TEXT_FILE> <INPUT_IMAGE> <OUTPUT_IMAGE> [BIT_WIDTH]" << std::endl;
-        return -1;
-    }
-    else if (mode == "decrypt" && argc > 5) {
-        std::cout << "Usage: icrypt decrypt <TEXT_FILE> <INPUT_IMAGE> [BIT_WIDTH]" << std::endl;
-        return -1;
-    }
-    else if (mode != "encrypt" && mode != "decrypt") {
-        std::cout << "Usage: icrypt <encrypt|decrypt> <TEXT_FILE> <INPUT_IMAGE> <OUTPUT_IMAGE> [BIT_WIDTH]" << std::endl;
-        return -1;
-    }
+    CLI::App app{"Image Text Encryptor Encoder", "icrypt"};
 
-    // Read in arguments
-    std::string txtPth = argv[2];
-    std::string inputImPth = argv[3];
+    std::string txtPth;
+    std::string inputImPth;
     std::string outputImPth;
-    if (mode == "encrypt") outputImPth = argv[4];
     int bitWidth = 1;
-    if (mode == "encrypt" && argc == 6) bitWidth = std::stoi(argv[5]);
-    else if (mode == "decrypt" && argc == 5) bitWidth = std::stoi(argv[4]);
+
+    CLI::App *encrypt = app.add_subcommand("encrypt", "Encrypt text into an image");
+    encrypt->add_option("-t,--text-file", txtPth, "The text file to encrypt")->required();
+    encrypt->add_option("-i,--input-image", inputImPth, "The input image to encrypt the text into")->required();
+    encrypt->add_option("-o,--output-image", outputImPth, "The output image to write the encrypted text to")->required();
+    encrypt->add_option("-b,--bit-width", bitWidth, "The number of bits to use for encoding within each channel (1, 2, or 4)")->default_val(1);
+
+    CLI::App *decrypt = app.add_subcommand("decrypt", "Decrypt text from an image");
+    decrypt->add_option("-i,--input-image", inputImPth, "The input image to decrypt the text from")->required();
+    decrypt->add_option("-o,--output-text", txtPth, "The text file to write the decrypted text to")->required();
+    decrypt->add_option("-b,--bit-width", bitWidth, "The number of bits used for encoding within each channel (1, 2, or 4)")->default_val(1);
+
+    try {
+        app.parse(argc, argv);
+        if (!encrypt->parsed() && !decrypt->parsed())
+            std::cout << app.help() << std::endl;
+    } catch (const CLI::ParseError &e) { return app.exit(e); }
+    catch (const std::runtime_error &e) {
+        const CLI::Error cli("Runtime Error", e.what());
+        return app.exit(cli);
+    }
 
     if (bitWidth != 1 && bitWidth != 2 && bitWidth != 4) {
         std::cout << "Error: Bit width must be 1, 2, or 4" << std::endl;
         return -1;
     }
-    if (mode == "encrypt" && outputImPth.find('.') == std::string::npos) {
+    if (encrypt->parsed() && outputImPth.find('.') == std::string::npos) {
         std::cout << "Error: Output image path must have an extension" << std::endl;
         return -1;
     }
 
     std::string decodedText;
 
-    std::ifstream inTxtFile;
     std::ofstream outTxtFile;
     // Read in text file
-    if (mode == "encrypt") {
-        inTxtFile = std::ifstream(txtPth);
-        if (!inTxtFile.is_open()) {
-            std::cout << "Could not open file" << std::endl;
-            return -1;
-        }
-        std::string line;
-        while (getline(inTxtFile, line)) decodedText += line + "\n";
-        decodedText.pop_back(); // Remove last newline character
-        inTxtFile.close();
-    }
+    if (encrypt->parsed()) decodedText = readInText(txtPth);
     // Open stream for output text file
     else outTxtFile = std::ofstream(txtPth);
 
@@ -70,7 +76,7 @@ int main(int argc, char** argv) {
         return -1;
     }
 
-    if (mode == "encrypt") {
+    if (encrypt->parsed()) {
         int overflow = decodedText.length() - (image.rows * image.cols);
         if (overflow > 0)
             std::cout << "Warning: The last " << overflow << "character of text will be truncated!" << std::endl;
