@@ -48,7 +48,7 @@ void decodeCommand(cv::Mat& image, const std::string& outputTxtPth, int bitWidth
 
 int main(int argc, char** argv) {
 
-    CLI::App app{"Image Text Encryptor Encoder", "icrypt"};
+    CLI::App app{"Image-Based document encoder-decoder", "icrypt"};
     app.require_subcommand(1);
 
     std::string txtPth;
@@ -63,20 +63,20 @@ int main(int argc, char** argv) {
     app.add_option("-k, --key", keyPth, "The key file to use for encoding/decoding, if applicable")->default_val("");
     app.add_option("-b, --bit-width", bitWidth, "The number of bits to use for encoding within each channel (1, 2, or 4)")->default_val(1);
 
-    CLI::App *encrypt = app.add_subcommand("encrypt", "Encrypt text into an image");
-    encrypt->fallthrough();
-    encrypt->add_option("-t,--text-file", txtPth, "The text file to encrypt")->required();
-    encrypt->add_option("-i,--input-image", inputImPth, "The input image to encrypt the text into")->required();
-    encrypt->add_option("-o,--output-image", outputImPth, "The output image to write the encrypted text to")->required();
+    CLI::App *encode = app.add_subcommand("encode", "Encode text into an image");
+    encode->fallthrough();
+    encode->add_option("input-image", inputImPth, "The input image to encode the text into")->required();
+    encode->add_option("text-file", txtPth, "The text file to encode")->required();
+    encode->add_option("-o,--output-image", outputImPth, "The output image to write the encrypted text to")->required();
 
-    CLI::App *decrypt = app.add_subcommand("decrypt", "Decrypt text from an image");
-    decrypt->fallthrough();
-    decrypt->add_option("-i,--input-image", inputImPth, "The input image to decrypt the text from")->required();
-    decrypt->add_option("-o,--output-text", txtPth, "The text file to write the decrypted text to")->required();
+    CLI::App *decode = app.add_subcommand("decode", "Decode text from an image");
+    decode->fallthrough();
+    decode->add_option("input-image", inputImPth, "The input image to decode the text from")->required();
+    decode->add_option("-o,--output-text", txtPth, "The text file to write the decrypted text to")->required();
 
     try {
         app.parse(argc, argv);
-        if (!encrypt->parsed() && !decrypt->parsed())
+        if (!encode->parsed() && !decode->parsed())
             std::cout << app.help() << std::endl;
     } catch (const CLI::ParseError &e) { return app.exit(e); }
     catch (const std::runtime_error &e) {
@@ -88,7 +88,7 @@ int main(int argc, char** argv) {
         std::cout << "Error: Bit width must be 1, 2, or 4" << std::endl;
         return -1;
     }
-    if (encrypt->parsed() && outputImPth.find('.') == std::string::npos) {
+    if (encode->parsed() && outputImPth.find('.') == std::string::npos) {
         std::cout << "Error: Output image path must have an extension" << std::endl;
         return -1;
     }
@@ -105,7 +105,7 @@ int main(int argc, char** argv) {
         return -1;
     }
 
-    if (encrypt->parsed()) {
+    if (encode->parsed()) {
         std::string inputText = readInText(txtPth);
         encodeCommand(inputText, image, outputImPth, bitWidth, enc, key);
     }
