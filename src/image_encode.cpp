@@ -46,26 +46,37 @@ void addAlphaChannel(cv::Mat& image) {
 }
 
 
+/**
+ * Gets the character at the given index in the text, or a random character if the index is out of bounds
+ * @param text The text to get the character from
+ * @param index The index of the character to get
+ * @return The character at the given index in the text, or a random character if the index is out of bounds
+ */
+char getChar(const std::string& text, int index) {
+    if (index < text.length())
+        return text[index];
+    else if (index > text.length() + 1)
+        return "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"[rand() % 64];
+    return 0;
+}
+
+
 void encodeText(cv::Mat& image, const std::string& text, int bitWidth) {
 
     // Add an alpha channel if the image does not have one and ground the pixel values
     if (image.channels() == 3) addAlphaChannel(image);
     preprocessImage(image, bitWidth);
 
-    int textLength = text.length();
     int textIndex = 0;
     bool evenPixel = true;
+    char current;
 
     for (int i = 0; i < image.rows; i++) {
         for (int j = 0; j < image.cols; j++) {
 
             cv::Vec4b pixel = image.at<cv::Vec4b>(i, j);
 
-            char current;
-            if (textIndex < textLength)
-                current = text[textIndex];
-            else if (textIndex > textLength + 1)
-                current = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"[rand() % 64];
+            current = getChar(text, textIndex);
 
             // 1-Bit encoding: encode the text over two pixels
             if (bitWidth == 1) {
@@ -89,6 +100,7 @@ void encodeText(cv::Mat& image, const std::string& text, int bitWidth) {
                     for (int l = 4; l < 8; l++)
                         pixel[k*2] += ((current >> l) & 1) << (7-l);
                     textIndex++;
+                    current = getChar(text, textIndex);
                 }
             }
 
