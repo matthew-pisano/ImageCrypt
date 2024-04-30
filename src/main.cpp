@@ -5,6 +5,7 @@
 #include "CLI11/CLI11.hpp"
 #include "image_encode.h"
 #include "encodings.h"
+#include "base64.h"
 
 
 std::string readInText(const std::string& txtPth) {
@@ -24,7 +25,8 @@ std::string readInText(const std::string& txtPth) {
 
 
 void encodeCommand(const std::string& inputText, cv::Mat& image, const std::string& outputImPth, int bitWidth, Encoding *enc, const std::string& key) {
-    std::string encryptedText = enc->encode(inputText, key);
+    std::string b64Text = base64Encode(inputText);
+    std::string encryptedText = enc->encode(b64Text, key);
     int overflow = (int) encryptedText.length() - (image.rows * image.cols);
     if (overflow > 0)
         std::cout << "Warning: The last " << overflow << " characters of text will be truncated!" << std::endl;
@@ -40,8 +42,9 @@ void decodeCommand(cv::Mat& image, const std::string& outputTxtPth, int bitWidth
     // Decode the text from the image
     std::string decodedText = decodeText(image, bitWidth);
     std::string decryptedText = enc->decode(decodedText, key);
+    std::string plainText = base64Decode(decryptedText);
     std::ofstream outTxtFile = std::ofstream(outputTxtPth);
-    outTxtFile << decryptedText;
+    outTxtFile << plainText;
     outTxtFile.close();
 }
 

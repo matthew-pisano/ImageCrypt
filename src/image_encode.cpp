@@ -61,37 +61,36 @@ void encodeText(cv::Mat& image, const std::string& text, int bitWidth) {
 
             cv::Vec4b pixel = image.at<cv::Vec4b>(i, j);
 
-            if (textIndex < textLength) {
-                // 1-Bit encoding: encode the text over two pixels
-                if (bitWidth == 1) {
-                    int shift = evenPixel ? 4 : 0;
-                    for (int k = 0; k < 4; k++)
-                        pixel[k] += (text[textIndex] >> (k + shift)) & 1;
-                    // Process character every other pixel
-                    if (!evenPixel) textIndex++;
-                }
-                // 2-Bit encoding: encode the text over one pixel
-                else if (bitWidth == 2) {
-                    for (int k = 0; k < 4; k++)
-                        pixel[k] += ((text[textIndex] >> (k * 2)) & 1) + (((text[textIndex] >> (k * 2 + 1)) & 1) << 1);
+            char current;
+            if (textIndex < textLength)
+                current = text[textIndex];
+            else if (textIndex > textLength + 1)
+                current = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"[rand() % 64];
+
+            // 1-Bit encoding: encode the text over two pixels
+            if (bitWidth == 1) {
+                int shift = evenPixel ? 4 : 0;
+                for (int k = 0; k < 4; k++)
+                    pixel[k] += (current >> (k + shift)) & 1;
+                // Process character every other pixel
+                if (!evenPixel) textIndex++;
+            }
+            // 2-Bit encoding: encode the text over one pixel
+            else if (bitWidth == 2) {
+                for (int k = 0; k < 4; k++)
+                    pixel[k] += ((current >> (k * 2)) & 1) + (((current >> (k * 2 + 1)) & 1) << 1);
+                textIndex++;
+            }
+            // 4-Bit encoding: encode the text over two pixel channels
+            else if (bitWidth == 4) {
+                for (int k = 0; k < 2; k++) {
+                    for (int l = 0; l < 4; l++)
+                        pixel[k*2+1] += ((current >> l) & 1) << (3-l);
+                    for (int l = 4; l < 8; l++)
+                        pixel[k*2] += ((current >> l) & 1) << (7-l);
                     textIndex++;
                 }
-                // 4-Bit encoding: encode the text over two pixel channels
-                else if (bitWidth == 4) {
-                    for (int k = 0; k < 2; k++) {
-                        for (int l = 0; l < 4; l++)
-                            pixel[k*2+1] += ((text[textIndex] >> l) & 1) << (3-l);
-                        for (int l = 4; l < 8; l++)
-                            pixel[k*2] += ((text[textIndex] >> l) & 1) << (7-l);
-                        textIndex++;
-                    }
-                }
             }
-            // Add random noise to the image after the text has been encoded to prevent detection
-            else if (textIndex > textLength + 1)
-                for (int k = 0; k < 4; k++)
-                    pixel[k] += rand() % (1 << bitWidth);
-            else textIndex++;
 
             image.at<cv::Vec4b>(i, j) = pixel;
             evenPixel = !evenPixel;

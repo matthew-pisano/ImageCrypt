@@ -12,6 +12,8 @@ add_executable(icrypt src/main.cpp
         include/image_encode.h
         src/encodings.cpp
         include/encodings.h
-        lib/CLI11/CLI11.hpp)
+        lib/CLI11/CLI11.hpp
+        src/base64.cpp
+        include/base64.h)
 
 target_link_libraries(icrypt ${OpenCV_LIBS})
