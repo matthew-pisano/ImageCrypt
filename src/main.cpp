@@ -24,11 +24,11 @@ std::string readInText(const std::string& txtPth) {
 }
 
 
-void encodeCommand(const std::string& inputText, cv::Mat& image, const std::string& outputImPth, int bitWidth, Encoding *enc, const std::string& key) {
+void encodeCommand(const std::string& inputText, cv::Mat& image, const std::string& outputImPth, int bitWidth, Encoding* enc, const std::string& key) {
     std::string b64Text = base64Encode(inputText);
     std::string hashEncText = enc->encode(b64Text, key);
     int overflow = (int) hashEncText.length() - (image.rows * image.cols);
-    if (overflow > 0)
+    if (overflow>0)
         std::cout << "Warning: The last " << overflow << " characters of text will be truncated!" << std::endl;
 
     // Encode the text into the image
@@ -38,7 +38,7 @@ void encodeCommand(const std::string& inputText, cv::Mat& image, const std::stri
     imwrite(outputImPth, outputImage);
 }
 
-void decodeCommand(cv::Mat& image, const std::string& outputTxtPth, int bitWidth, Encoding *enc, const std::string& key) {
+void decodeCommand(cv::Mat& image, const std::string& outputTxtPth, int bitWidth, Encoding* enc, const std::string& key) {
     // Decode the text from the image
     std::string hashEncText = decodeText(image, bitWidth);
     std::string b64Text = enc->decode(hashEncText, key);
@@ -66,13 +66,13 @@ int main(int argc, char** argv) {
     app.add_option("-k, --key", keyPth, "The key file to use for encoding/decoding, if applicable")->default_val("");
     app.add_option("-b, --bit-width", bitWidth, "The number of bits to use for encoding within each channel (1, 2, or 4)")->default_val(1);
 
-    CLI::App *encode = app.add_subcommand("encode", "Encode text into an image");
+    CLI::App* encode = app.add_subcommand("encode", "Encode text into an image");
     encode->fallthrough();
     encode->add_option("input-image", inputImPth, "The input image to encode the text into")->required();
     encode->add_option("text-file", txtPth, "The text file to encode")->required();
     encode->add_option("-o,--output-image", outputImPth, "The output image to write the text to")->required();
 
-    CLI::App *decode = app.add_subcommand("decode", "Decode text from an image");
+    CLI::App* decode = app.add_subcommand("decode", "Decode text from an image");
     decode->fallthrough();
     decode->add_option("input-image", inputImPth, "The input image to decode the text from")->required();
     decode->add_option("-o,--output-text", txtPth, "The text file to write the decoded text to")->required();
@@ -81,8 +81,8 @@ int main(int argc, char** argv) {
         app.parse(argc, argv);
         if (!encode->parsed() && !decode->parsed())
             std::cout << app.help() << std::endl;
-    } catch (const CLI::ParseError &e) { return app.exit(e); }
-    catch (const std::runtime_error &e) {
+    } catch (const CLI::ParseError& e) { return app.exit(e); }
+    catch (const std::runtime_error& e) {
         const CLI::Error cli("Runtime Error", e.what());
         return app.exit(cli);
     }
@@ -99,7 +99,7 @@ int main(int argc, char** argv) {
     std::string key;
     if (encoding != "plain" && !keyPth.empty()) key = readInText(keyPth);
 
-    Encoding *enc = encodingFromName(encoding);
+    Encoding* enc = encodingFromName(encoding);
 
     // Read in input image
     cv::Mat image = imread(inputImPth, cv::IMREAD_UNCHANGED);
@@ -111,8 +111,7 @@ int main(int argc, char** argv) {
     if (encode->parsed()) {
         std::string inputText = readInText(txtPth);
         encodeCommand(inputText, image, outputImPth, bitWidth, enc, key);
-    }
-    else decodeCommand(image, txtPth, bitWidth, enc, key);
+    } else decodeCommand(image, txtPth, bitWidth, enc, key);
 
     delete enc;
 

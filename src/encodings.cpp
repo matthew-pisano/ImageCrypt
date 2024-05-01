@@ -10,13 +10,6 @@
 #include "encodings.h"
 
 
-std::map<std::string, std::string> encodingMap = {
-        {"plain",     ""},
-        {"shiftall",  "akey"},
-        {"shiftchar", "ckey"},
-};
-
-
 Encoding* encodingFromName(const std::string& name) {
     Encoding* encodings[] = {new PlainEncoding(), new ShiftAllEncoding(), new ShiftCharEncoding()};
     std::string availEncodings;
@@ -37,16 +30,12 @@ Encoding* encodingFromName(const std::string& name) {
 // PlainEncoding implementation
 std::string PlainEncoding::name() { return "plain"; }
 
-std::string PlainEncoding::ext() { return encodingMap.at("plain"); }
-
 std::string PlainEncoding::decode(std::string encoded, const std::string& key) { return encoded; }
 
 std::string PlainEncoding::encode(std::string raw, const std::string& key) { return raw; }
 
 // ShiftAllEncoding implementation
 std::string ShiftAllEncoding::name() { return "shiftall"; }
-
-std::string ShiftAllEncoding::ext() { return encodingMap.at("shiftall"); }
 
 std::string ShiftAllEncoding::decode(std::string encoded, const std::string& key) {
     const int charMax = 128;
@@ -70,8 +59,6 @@ std::string ShiftAllEncoding::encode(std::string raw, const std::string& key) {
 
 // ShiftCharEncoding implementation
 std::string ShiftCharEncoding::name() { return "shiftchar"; }
-
-std::string ShiftCharEncoding::ext() { return encodingMap.at("shiftchar"); }
 
 std::string ShiftCharEncoding::decode(std::string encoded, const std::string& key) {
     std::string decoded;

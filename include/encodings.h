@@ -22,18 +22,12 @@ struct Encoding {
     virtual std::string name() = 0;
 
     /**
-     * The extension associated with the encoding
-     * @return The encoding extension
-     */
-    virtual std::string ext() = 0;
-
-    /**
      * Decodes a std::string using the given key and returns the result
      * @param encoded The original, encoded std::string
      * @param key The key to decode with
      * @return The decoded std::string
      */
-    virtual std::string decode(std::string encoded, const std::string &key) = 0;
+    virtual std::string decode(std::string encoded, const std::string& key) = 0;
 
     /**
      * Encodes a std::string using the given key and returns the result
@@ -41,7 +35,7 @@ struct Encoding {
      * @param key The key to encode with
      * @return The encoded std::string
      */
-    virtual std::string encode(std::string raw, const std::string &key) = 0;
+    virtual std::string encode(std::string raw, const std::string& key) = 0;
 };
 
 
@@ -52,11 +46,9 @@ struct PlainEncoding : public Encoding {
 
     std::string name() override;
 
-    std::string ext() override;
+    std::string decode(std::string encoded, const std::string& key) override;
 
-    std::string decode(std::string encoded, const std::string &key) override;
-
-    std::string encode(std::string raw, const std::string &key) override;
+    std::string encode(std::string raw, const std::string& key) override;
 };
 
 
@@ -67,11 +59,9 @@ struct ShiftAllEncoding : public Encoding {
 
     std::string name() override;
 
-    std::string ext() override;
+    std::string decode(std::string encoded, const std::string& key) override;
 
-    std::string decode(std::string encoded, const std::string &key) override;
-
-    std::string encode(std::string raw, const std::string &key) override;
+    std::string encode(std::string raw, const std::string& key) override;
 };
 
 
@@ -82,11 +72,9 @@ struct ShiftCharEncoding : public Encoding {
 
     std::string name() override;
 
-    std::string ext() override;
+    std::string decode(std::string encoded, const std::string& key) override;
 
-    std::string decode(std::string encoded, const std::string &key) override;
-
-    std::string encode(std::string raw, const std::string &key) override;
+    std::string encode(std::string raw, const std::string& key) override;
 };
 
 
@@ -95,6 +83,6 @@ struct ShiftCharEncoding : public Encoding {
  * @param name The name of the encoding to get
  * @return A pointer to an encoding instance
  */
-Encoding *encodingFromName(const std::string &name);
+Encoding* encodingFromName(const std::string& name);
 
 #endif //ICRYPT_ENCODINGS_H

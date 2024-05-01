@@ -19,6 +19,6 @@ std::string base64Encode(const std::string& in);
  * @param in The base64 encoded string
  * @return The decoded string
  */
-std::string base64Decode(const std::string &in);
+std::string base64Decode(const std::string& in);
 
 #endif //ICRYPT_BASE64_H

@@ -13,8 +13,8 @@
 void preprocessImage(cv::Mat& image, int bitWidth) {
 
     int bitMax = 1 << bitWidth;
-    for (int i = 0; i < image.rows; i++) {
-        for (int j = 0; j < image.cols; j++) {
+    for (int i = 0; i<image.rows; i++) {
+        for (int j = 0; j<image.cols; j++) {
 
             cv::Vec4b pixel = image.at<cv::Vec4b>(i, j);
 
@@ -53,9 +53,9 @@ void addAlphaChannel(cv::Mat& image) {
  * @return The character at the given index in the text, or a random character if the index is out of bounds
  */
 char getChar(const std::string& text, int index) {
-    if (index < text.length())
+    if (index<text.length())
         return text[index];
-    else if (index > text.length() + 1)
+    else if (index>text.length() + 1)
         return "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"[rand() % 64];
     return 0;
 }
@@ -71,8 +71,8 @@ void encodeText(cv::Mat& image, const std::string& text, int bitWidth) {
     bool evenPixel = true;
     char current;
 
-    for (int i = 0; i < image.rows; i++) {
-        for (int j = 0; j < image.cols; j++) {
+    for (int i = 0; i<image.rows; i++) {
+        for (int j = 0; j<image.cols; j++) {
 
             cv::Vec4b pixel = image.at<cv::Vec4b>(i, j);
 
@@ -81,24 +81,24 @@ void encodeText(cv::Mat& image, const std::string& text, int bitWidth) {
             // 1-Bit encoding: encode the text over two pixels
             if (bitWidth == 1) {
                 int shift = evenPixel ? 4 : 0;
-                for (int k = 0; k < 4; k++)
+                for (int k = 0; k<4; k++)
                     pixel[k] += (current >> (k + shift)) & 1;
                 // Process character every other pixel
                 if (!evenPixel) textIndex++;
             }
-            // 2-Bit encoding: encode the text over one pixel
+                // 2-Bit encoding: encode the text over one pixel
             else if (bitWidth == 2) {
-                for (int k = 0; k < 4; k++)
+                for (int k = 0; k<4; k++)
                     pixel[k] += ((current >> (k * 2)) & 1) + (((current >> (k * 2 + 1)) & 1) << 1);
                 textIndex++;
             }
-            // 4-Bit encoding: encode the text over two pixel channels
+                // 4-Bit encoding: encode the text over two pixel channels
             else if (bitWidth == 4) {
-                for (int k = 0; k < 2; k++) {
-                    for (int l = 0; l < 4; l++)
-                        pixel[k*2+1] += ((current >> l) & 1) << (3-l);
-                    for (int l = 4; l < 8; l++)
-                        pixel[k*2] += ((current >> l) & 1) << (7-l);
+                for (int k = 0; k<2; k++) {
+                    for (int l = 0; l<4; l++)
+                        pixel[k * 2 + 1] += ((current >> l) & 1) << (3 - l);
+                    for (int l = 4; l<8; l++)
+                        pixel[k * 2] += ((current >> l) & 1) << (7 - l);
                     textIndex++;
                     current = getChar(text, textIndex);
                 }
@@ -122,15 +122,15 @@ std::string decodeText(cv::Mat& image, int bitWidth) {
     char character = 0;
     bool evenPixel = true;
 
-    for (int i = 0; i < image.rows; i++) {
-        for (int j = 0; j < image.cols; j++) {
+    for (int i = 0; i<image.rows; i++) {
+        for (int j = 0; j<image.cols; j++) {
 
             cv::Vec4b pixel = image.at<cv::Vec4b>(i, j);
 
             // 1-Bit decoding: decode the text from two pixels
             if (bitWidth == 1) {
                 int shift = evenPixel ? 4 : 0;
-                for (int k = 0; k < 4; k++)
+                for (int k = 0; k<4; k++)
                     character |= ((pixel[k] % 2) << (k + shift));
 
                 // Process character every other pixel
@@ -139,19 +139,19 @@ std::string decodeText(cv::Mat& image, int bitWidth) {
                     character = 0;
                 }
             }
-            // 2-Bit decoding: decode the text from one pixel
+                // 2-Bit decoding: decode the text from one pixel
             else if (bitWidth == 2) {
-                for (int k = 0; k < 8; k++)
+                for (int k = 0; k<8; k++)
                     character |= (((pixel[k / 2] % 4) >> (k % 2)) & 1) << k;
 
                 text += character;
                 character = 0;
             }
-            // 4-Bit decoding: decode the text from two pixel channels
+                // 4-Bit decoding: decode the text from two pixel channels
             else if (bitWidth == 4) {
-                for (int k = 0; k < 2; k++) {
-                    int pixelIdx = k*2;
-                    for (int l = 0; l < 8; l++) {
+                for (int k = 0; k<2; k++) {
+                    int pixelIdx = k * 2;
+                    for (int l = 0; l<8; l++) {
                         character |= (((pixel[pixelIdx] % 16) >> (l % 4)) & 1) << (7 - l);
                         if (l == 3) pixelIdx++;
                     }
