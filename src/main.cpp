@@ -8,6 +8,11 @@
 #include "base64.h"
 
 
+/**
+ * Reads in the text from a file
+ * @param txtPth The path to the text file
+ * @return The text content from the file
+ */
 std::string readInText(const std::string& txtPth) {
     std::string fileText;
     std::ifstream inTxtFile(txtPth);
@@ -15,6 +20,7 @@ std::string readInText(const std::string& txtPth) {
         std::cout << "Could not open file" << std::endl;
         exit(-1);
     }
+
     std::string line;
     while (getline(inTxtFile, line)) fileText += line + "\n";
     fileText.pop_back(); // Remove last newline character
@@ -24,6 +30,15 @@ std::string readInText(const std::string& txtPth) {
 }
 
 
+/**
+ * Encodes the given text into the image
+ * @param inputText The text to encode
+ * @param image The image to encode the text into
+ * @param outputImPth The path to write the output image to
+ * @param bitWidth The number of bits to use for encoding within each channel (1, 2, or 4)
+ * @param enc The encoding to use
+ * @param key The key to encode with
+ */
 void encodeCommand(const std::string& inputText, cv::Mat& image, const std::string& outputImPth, int bitWidth, Encoding* enc, const std::string& key) {
     std::string b64Text = base64Encode(inputText);
     std::string hashEncText = enc->encode(b64Text, key);
@@ -38,14 +53,26 @@ void encodeCommand(const std::string& inputText, cv::Mat& image, const std::stri
     imwrite(outputImPth, outputImage);
 }
 
+
+/**
+ * Decodes the text from the image
+ * @param image The image to decode the text from
+ * @param outputTxtPth The path to write the output text to.  If empty, the text will be printed to the console
+ * @param bitWidth The number of bits to use for decoding within each channel (1, 2, or 4)
+ * @param enc The encoding to use
+ * @param key The key to decode with
+ */
 void decodeCommand(cv::Mat& image, const std::string& outputTxtPth, int bitWidth, Encoding* enc, const std::string& key) {
     // Decode the text from the image
     std::string hashEncText = decodeText(image, bitWidth);
     std::string b64Text = enc->decode(hashEncText, key);
     std::string plainText = base64Decode(b64Text);
-    std::ofstream outTxtFile = std::ofstream(outputTxtPth);
-    outTxtFile << plainText;
-    outTxtFile.close();
+
+    if (!outputTxtPth.empty()) {
+        std::ofstream outTxtFile = std::ofstream(outputTxtPth);
+        outTxtFile << plainText;
+        outTxtFile.close();
+    } else std::cout << plainText << std::endl;
 }
 
 
@@ -75,7 +102,7 @@ int main(int argc, char** argv) {
     CLI::App* decode = app.add_subcommand("decode", "Decode text from an image");
     decode->fallthrough();
     decode->add_option("input-image", inputImPth, "The input image to decode the text from")->required();
-    decode->add_option("-o,--output-text", txtPth, "The text file to write the decoded text to")->required();
+    decode->add_option("-o,--output-text", txtPth, "The text file to write the decoded text to")->default_val("");
 
     try {
         app.parse(argc, argv);

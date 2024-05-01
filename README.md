@@ -12,8 +12,10 @@ The `icrypt` executable has two sub-commands, `encode` and `decode`. Each of the
 ```bash
 icrypt encode <input_image> <text-file> < -o output_image> [-e encoding] [-k key_file] [-b bit_width]
 
-icrypt decode <input_image> < -o output_text> [-e encoding] [-k key_file] [-b bit_width]
+icrypt decode <input_image> [-o output_text] [-e encoding] [-k key_file] [-b bit_width]
 ```
+
+If no output file is given when decoding, the decoded text will be printed to the console.
 
 ## Text Preprocessing and Postprocessing
 
