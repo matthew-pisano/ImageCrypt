@@ -114,7 +114,7 @@ void encodeText(cv::Mat& image, const std::string& text, int bitWidth) {
 std::string decodeText(cv::Mat& image, int bitWidth) {
 
     if (image.channels() == 3) {
-        std::cout << "Error: Image does not have an alpha channel. Cannot decrypt." << std::endl;
+        std::cout << "Error: Image does not have an alpha channel. Cannot decode." << std::endl;
         exit(-1);
     }
 

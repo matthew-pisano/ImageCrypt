@@ -1,6 +1,9 @@
 # Image-Crypt Document Encoder
 
-A simple document encoder in C++. Documents are encoded based off of noise inserted into a target image. The noise may be generated based off of a key file.
+Encodes documents into a target image file.  Documents are encoded based off of noise inserted into a target image. The noise may optionally be generated based off of a key file to further obfuscate it using a hash-based encoding. The encoded document can be extracted from the image using the same key file.
+
+> [!CAUTION]
+> This program is not cryptographically secure and should not be used to encode sensitive information.  If security is a concern, use a more secure encryption method before encoding the text into an image.
 
 ## Usage
 
@@ -12,9 +15,13 @@ icrypt encode <input_image> <text-file> < -o output_image> [-e encoding] [-k key
 icrypt decode <input_image> < -o output_text> [-e encoding] [-k key_file] [-b bit_width]
 ```
 
+## Text Preprocessing and Postprocessing
+
+To ensure that non-ASCII text can be losslessly encoded to and decoded from images, base64 encoding is used to encode the text before it undergoes any obfuscation or is inserted into the image.  The text is decoded after it undergoes any de-obfuscation or is extracted from the image.
+
 ## Image Encoding
 
-Text is encoded into an image by inserting noise into the image. The noise is generated based off of the text to be encoded and an optional key file.  If a key file is given, the raw text will first be encoded using the key before being encoded into the image.  This encoding can only be performed on a 4-channel image (RGBA); if a three-channel image is given, the image will be converted to a four-channel image by adding an alpha channel.
+Text is encoded into an image by inserting noise into the image. The noise is generated based off of the text to be encoded and an optional key file.  If a key file is given, the raw text will first be obfuscated using the key before being encoded into the image.  This encoding can only be performed on a 4-channel image (RGBA); if a three-channel image is given, the image will be converted to a four-channel image by adding an alpha channel.
 
 ### Noise Generation
 
@@ -26,14 +33,16 @@ For example, if the bit width is 2, each pixel channel will encode two bits of a
 
 The resulting image appears nearly identical to the original, but with a small amount of noise added from the text encoding.
 
-## Text Encodings
+## Text Obfuscation
 
-The following encodings are available:
+To make the encoded text less obvious, it can be obfuscated using a key file.  The key file's contents are hashed to generate a key that is used to obfuscate the text.
 
-### Shift Encoding
+The following two hash-based obfuscation strategies are available:
 
-Documents encoded with the shift encoding have their characters shifted upward based off of the hash of the key given.
+### Full-Text Shifting
 
-### Character Shift Encoding
+Documents obfuscated with full-text shifting have had their bits shifted uniformly upward based off of the hash of the key.  This helps to make the encoded text less obvious, but it is still possible to decode the text by brute-force guessing the shift value.
 
-Documents encoded in this manner have each of their characters shifted based off of the hash of the character index and the key. This ensures that the contents cannot be decoded by simply guessing the shift value as each character may have a different shift.
+### Per-Character Shifting
+
+Documents obfuscated in this manner have each of their characters shifted based off of the combined hash of the character index and the key. This ensures that the contents cannot be decoded by simply guessing the shift value as each character may have a different shift.  This method is more secure than full-text shifting, but it is still possible to decode the text by brute-force guessing keys with different hashes until the correct `hash % 128` is found.

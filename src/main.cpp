@@ -26,23 +26,23 @@ std::string readInText(const std::string& txtPth) {
 
 void encodeCommand(const std::string& inputText, cv::Mat& image, const std::string& outputImPth, int bitWidth, Encoding *enc, const std::string& key) {
     std::string b64Text = base64Encode(inputText);
-    std::string encryptedText = enc->encode(b64Text, key);
-    int overflow = (int) encryptedText.length() - (image.rows * image.cols);
+    std::string hashEncText = enc->encode(b64Text, key);
+    int overflow = (int) hashEncText.length() - (image.rows * image.cols);
     if (overflow > 0)
         std::cout << "Warning: The last " << overflow << " characters of text will be truncated!" << std::endl;
 
     // Encode the text into the image
     cv::Mat outputImage = image.clone();
-    encodeText(outputImage, encryptedText, bitWidth);
+    encodeText(outputImage, hashEncText, bitWidth);
     // Write the image
     imwrite(outputImPth, outputImage);
 }
 
 void decodeCommand(cv::Mat& image, const std::string& outputTxtPth, int bitWidth, Encoding *enc, const std::string& key) {
     // Decode the text from the image
-    std::string decodedText = decodeText(image, bitWidth);
-    std::string decryptedText = enc->decode(decodedText, key);
-    std::string plainText = base64Decode(decryptedText);
+    std::string hashEncText = decodeText(image, bitWidth);
+    std::string b64Text = enc->decode(hashEncText, key);
+    std::string plainText = base64Decode(b64Text);
     std::ofstream outTxtFile = std::ofstream(outputTxtPth);
     outTxtFile << plainText;
     outTxtFile.close();
@@ -70,12 +70,12 @@ int main(int argc, char** argv) {
     encode->fallthrough();
     encode->add_option("input-image", inputImPth, "The input image to encode the text into")->required();
     encode->add_option("text-file", txtPth, "The text file to encode")->required();
-    encode->add_option("-o,--output-image", outputImPth, "The output image to write the encrypted text to")->required();
+    encode->add_option("-o,--output-image", outputImPth, "The output image to write the text to")->required();
 
     CLI::App *decode = app.add_subcommand("decode", "Decode text from an image");
     decode->fallthrough();
     decode->add_option("input-image", inputImPth, "The input image to decode the text from")->required();
-    decode->add_option("-o,--output-text", txtPth, "The text file to write the decrypted text to")->required();
+    decode->add_option("-o,--output-text", txtPth, "The text file to write the decoded text to")->required();
 
     try {
         app.parse(argc, argv);
