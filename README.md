@@ -15,7 +15,9 @@ icrypt encode <input_image> <text-file> < -o output_image> [-e encoding] [-k key
 icrypt decode <input_image> [-o output_text] [-e encoding] [-k key_file] [-b bit_width]
 ```
 
-If no output file is given when decoding, the decoded text will be printed to the console.
+* If no output file is given when decoding, the decoded text will be printed to the console.
+* If no input file is given when encoding, the program will read from standard input.
+  * Use `Ctrl+D` to signal the end of the input. 
 
 ## Text Preprocessing and Postprocessing
 

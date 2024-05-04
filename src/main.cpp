@@ -13,11 +13,11 @@
  * @param txtPth The path to the text file
  * @return The text content from the file
  */
-std::string readInText(const std::string& txtPth) {
+std::string textFromFile(const std::string& txtPth) {
     std::string fileText;
     std::ifstream inTxtFile(txtPth);
     if (!inTxtFile.is_open()) {
-        std::cout << "Could not open file" << std::endl;
+        std::cerr << "Could not open file" << std::endl;
         exit(-1);
     }
 
@@ -27,6 +27,19 @@ std::string readInText(const std::string& txtPth) {
     inTxtFile.close();
 
     return fileText;
+}
+
+
+/**
+ * Reads in the text from stdin
+ * @return The text content from stdin
+ */
+std::string textFromStdin() {
+    std::string text;
+    std::string line;
+    while (std::getline(std::cin, line)) text += line + "\n";
+    text.pop_back(); // Remove last newline character
+    return text;
 }
 
 
@@ -44,7 +57,7 @@ void encodeCommand(const std::string& inputText, cv::Mat& image, const std::stri
     std::string hashEncText = enc->encode(b64Text, key);
     int overflow = (int) hashEncText.length() - (image.rows * image.cols);
     if (overflow>0)
-        std::cout << "Warning: The last " << overflow << " characters of text will be truncated!" << std::endl;
+        std::cerr << "Warning: The last " << overflow << " characters of text will be truncated!" << std::endl;
 
     // Encode the text into the image
     cv::Mat outputImage = image.clone();
@@ -96,13 +109,13 @@ int main(int argc, char** argv) {
     CLI::App* encode = app.add_subcommand("encode", "Encode text into an image");
     encode->fallthrough();
     encode->add_option("input-image", inputImPth, "The input image to encode the text into")->required();
-    encode->add_option("text-file", txtPth, "The text file to encode")->required();
+    encode->add_option("text-file", txtPth, "The text file to encode.  If omitted, text will be read from stdin")->default_val("");
     encode->add_option("-o,--output-image", outputImPth, "The output image to write the text to")->required();
 
     CLI::App* decode = app.add_subcommand("decode", "Decode text from an image");
     decode->fallthrough();
     decode->add_option("input-image", inputImPth, "The input image to decode the text from")->required();
-    decode->add_option("-o,--output-text", txtPth, "The text file to write the decoded text to")->default_val("");
+    decode->add_option("-o,--output-text", txtPth, "The text file to write the decoded text to.  If omitted, text will be sent to stdout")->default_val("");
 
     try {
         app.parse(argc, argv);
@@ -115,28 +128,28 @@ int main(int argc, char** argv) {
     }
 
     if (bitWidth != 1 && bitWidth != 2 && bitWidth != 4) {
-        std::cout << "Error: Bit width must be 1, 2, or 4" << std::endl;
+        std::cerr << "Error: Bit width must be 1, 2, or 4" << std::endl;
         return -1;
     }
     if (encode->parsed() && outputImPth.find('.') == std::string::npos) {
-        std::cout << "Error: Output image path must have an extension" << std::endl;
+        std::cerr << "Error: Output image path must have an extension" << std::endl;
         return -1;
     }
 
     std::string key;
-    if (encoding != "plain" && !keyPth.empty()) key = readInText(keyPth);
+    if (encoding != "plain" && !keyPth.empty()) key = textFromFile(keyPth);
 
     Encoding* enc = encodingFromName(encoding);
 
     // Read in input image
     cv::Mat image = imread(inputImPth, cv::IMREAD_UNCHANGED);
     if (image.empty()) {
-        std::cout << "Could not open or find the image" << std::endl;
+        std::cerr << "Could not open or find the image" << std::endl;
         return -1;
     }
 
     if (encode->parsed()) {
-        std::string inputText = readInText(txtPth);
+        std::string inputText = !txtPth.empty() ? textFromFile(txtPth) : textFromStdin();
         encodeCommand(inputText, image, outputImPth, bitWidth, enc, key);
     } else decodeCommand(image, txtPth, bitWidth, enc, key);
 

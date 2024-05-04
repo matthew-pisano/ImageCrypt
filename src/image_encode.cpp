@@ -35,7 +35,7 @@ void preprocessImage(cv::Mat& image, int bitWidth) {
  */
 void addAlphaChannel(cv::Mat& image) {
 
-    std::cout << "Warning: Image does not have an alpha channel. Adding an alpha channel to output image." << std::endl;
+    std::cerr << "Warning: Image does not have an alpha channel. Adding an alpha channel to output image." << std::endl;
     std::vector<cv::Mat> matChannels;
     split(image, matChannels);
 
@@ -114,11 +114,11 @@ void encodeText(cv::Mat& image, const std::string& text, int bitWidth) {
 std::string decodeText(cv::Mat& image, int bitWidth) {
 
     if (image.channels() == 3) {
-        std::cout << "Error: Image does not have an alpha channel. Cannot decode." << std::endl;
+        std::cerr << "Error: Image does not have an alpha channel. Cannot decode." << std::endl;
         exit(-1);
     }
 
-    std::string text = "";
+    std::string text;
     char character = 0;
     bool evenPixel = true;
 
@@ -162,6 +162,9 @@ std::string decodeText(cv::Mat& image, int bitWidth) {
             }
 
             evenPixel = !evenPixel;
+
+            if (!text.empty() && text.back() == '\0')
+                return text;
         }
     }
 

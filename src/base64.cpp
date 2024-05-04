@@ -5,6 +5,7 @@
 #include <string>
 #include <opencv2/core/hal/interface.h>
 #include <vector>
+#include <iostream>
 
 #include "base64.h"
 
@@ -36,7 +37,10 @@ std::string base64Decode(const std::string& in) {
 
     int val = 0, valb = -8;
     for (uchar c : in) {
-        if (T[c] == -1) break;
+        if (T[c] == -1) {
+            if (c != '=' && c != '\0') std::cerr << "Warning: Text may be truncated or corrupted!" << std::endl;
+            break;
+        }
         val = (val << 6) + T[c];
         valb += 6;
         if (valb>=0) {
