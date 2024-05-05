@@ -64,8 +64,10 @@ std::string ShiftCharEncoding::decode(std::string encoded, const std::string& ke
     std::string decoded;
     ShiftAllEncoding subEncoder = ShiftAllEncoding();
 
-    for (int i = 0; i<encoded.length(); i++)
-        decoded += subEncoder.decode(encoded.substr(i, 1), key + std::to_string(i));
+    for (int i = 0; i<encoded.length(); i++) {
+        std::string charKey = (!key.empty() ? key.substr(i % key.length(), 1) : "") + std::to_string(i);
+        decoded += subEncoder.decode(encoded.substr(i, 1), charKey);
+    }
 
     return decoded;
 }
@@ -74,9 +76,10 @@ std::string ShiftCharEncoding::encode(std::string raw, const std::string& key) {
     std::string encoded;
     ShiftAllEncoding subEncoder = ShiftAllEncoding();
 
-    for (int i = 0; i<raw.length(); i++)
-        encoded += subEncoder.encode(raw.substr(i, 1), key + std::to_string(i));
-
+    for (int i = 0; i<raw.length(); i++) {
+        std::string charKey = (!key.empty() ? key.substr(i % key.length(), 1) : "") + std::to_string(i);
+        encoded += subEncoder.encode(raw.substr(i, 1), charKey);
+    }
 
     return encoded;
 }

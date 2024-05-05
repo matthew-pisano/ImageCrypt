@@ -49,4 +49,8 @@ Documents obfuscated with full-text shifting have had their bits shifted uniform
 
 ### Per-Character Shifting
 
-Documents obfuscated in this manner have each of their characters shifted based off of the combined hash of the character index and the key. This ensures that the contents cannot be decoded by simply guessing the shift value as each character may have a different shift.  This method is more secure than full-text shifting, but it is still possible to decode the text by brute-force guessing keys with different hashes until the correct `hash % 128` is found.
+Documents obfuscated in this manner have each of their characters shifted based off of the combined hash of the character index and the character of the key at that index. 
+
+For example, if encoding the fourth character of `hello world` using the key `secret`, the character `o` would be shifted by the `hash % 128` of `e4`, since `e` if the fourth character of the key (zero indexed).
+
+This ensures that the contents cannot be decoded by simply guessing the shift value as each character may have a different shift.  This method is more secure than full-text shifting, as it cannot be trivially brute forced by just guessing one `[0-128]` value.  Since hashes cannot be easily reversed, using simple frequency analysis to decode the text is likely not possible.  However, such a simple algorithm can likely be cracked with enough effort, so using a more secure encryption method before encoding the text is recommended if security is a concern.
