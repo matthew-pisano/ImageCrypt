@@ -9,6 +9,13 @@
 
 
 /**
+ * Adds an alpha channel to the image
+ * @param image The image to add an alpha channel to
+ */
+void addAlphaChannel(cv::Mat& image);
+
+
+/**
  * Encodes text into an image by using the modulo of the pixel values to encode the bytes of the text
  * @param image The image to encode the text into
  * @param text The text to encode

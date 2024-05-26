@@ -3,17 +3,27 @@ project(icrypt)
 
 set(CMAKE_CXX_STANDARD 17)
 
-include_directories(/usr/include/opencv4)
-find_package( OpenCV REQUIRED )
+# Include directories
 include_directories(include lib)
 
-add_executable(icrypt src/main.cpp
-        src/image_encode.cpp
-        include/image_encode.h
-        src/encodings.cpp
-        include/encodings.h
-        lib/CLI11/CLI11.hpp
-        src/base64.cpp
-        include/base64.h)
+# Source files
+set(SOURCES
+    src/main.cpp
+    src/image_encode.cpp
+    src/encodings.cpp
+    src/base64.cpp
+)
 
-target_link_libraries(icrypt ${OpenCV_LIBS})
+# Find OpenCV
+find_package(OpenCV REQUIRED)
+include_directories(${OpenCV_INCLUDE_DIRS})
+
+# Find ImageMagick
+find_package(ImageMagick COMPONENTS Magick++ REQUIRED)
+include_directories(${ImageMagick_INCLUDE_DIRS})
+
+# Add executable
+add_executable(icrypt ${SOURCES})
+
+# Link libraries
+target_link_libraries(icrypt ${OpenCV_LIBS} ${ImageMagick_LIBRARIES})

@@ -30,23 +30,6 @@ void preprocessImage(cv::Mat& image, int bitWidth) {
 
 
 /**
- * Adds an alpha channel to the image
- * @param image The image to add an alpha channel to
- */
-void addAlphaChannel(cv::Mat& image) {
-
-    std::cerr << "Warning: Image does not have an alpha channel. Adding an alpha channel to output image." << std::endl;
-    std::vector<cv::Mat> matChannels;
-    split(image, matChannels);
-
-    // create alpha channel
-    cv::Mat alpha = cv::Mat::ones(image.size(), CV_8UC1) * 255;
-    matChannels.push_back(alpha);
-    merge(matChannels, image);
-}
-
-
-/**
  * Gets the character at the given index in the text, or a random character if the index is out of bounds
  * @param text The text to get the character from
  * @param index The index of the character to get
@@ -58,6 +41,19 @@ char getChar(const std::string& text, int index) {
     else if (index>text.length() + 1)
         return "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"[rand() % 64];
     return 0;
+}
+
+
+void addAlphaChannel(cv::Mat& image) {
+
+    std::cerr << "Warning: Image does not have an alpha channel. Adding an alpha channel to output image." << std::endl;
+    std::vector<cv::Mat> matChannels;
+    cv::split(image, matChannels);
+
+    // create alpha channel
+    cv::Mat alpha = cv::Mat::ones(image.size(), CV_8UC1) * 255;
+    matChannels.push_back(alpha);
+    cv::merge(matChannels, image);
 }
 
 
