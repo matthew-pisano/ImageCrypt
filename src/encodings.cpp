@@ -5,7 +5,6 @@
 
 #include <stdexcept>
 #include <unordered_map>
-#include <map>
 
 #include "encodings.h"
 
@@ -17,10 +16,9 @@ Encoding* encodingFromName(const std::string& name) {
     for (Encoding* enc : encodings) {
         if (name == enc->name())
             return enc;
-        else {
-            availEncodings += enc->name() + ", ";
-            delete enc;
-        }
+
+        availEncodings += enc->name() + ", ";
+        delete enc;
     }
 
     throw std::runtime_error("Encoding '" + name + "' not found!  Available encodings are: " + availEncodings);
@@ -38,33 +36,34 @@ std::string PlainEncoding::encode(std::string raw, const std::string& key) { ret
 std::string ShiftAllEncoding::name() { return "shiftall"; }
 
 std::string ShiftAllEncoding::decode(std::string encoded, const std::string& key) {
-    const int charMax = 128;
+    constexpr int charMax = 128;
     std::string decoded;
-    char keyHash = abs(static_cast<int>(std::hash<std::string>{}(key)) % charMax);
+    const int keyHash = abs(static_cast<int>(std::hash<std::string>{}(key)) % charMax);
 
-    for (char i : encoded)
-        decoded += i - keyHash>0 ? i - keyHash : i - keyHash + charMax;
+    for (const char chr : encoded)
+        decoded += static_cast<char>(chr - keyHash > 0 ? chr - keyHash : chr - keyHash + charMax);
+
     return decoded;
 }
 
 std::string ShiftAllEncoding::encode(std::string raw, const std::string& key) {
-    const int charMax = 128;
+    constexpr int charMax = 128;
     std::string encoded;
-    char keyHash = abs(static_cast<int>(std::hash<std::string>{}(key)) % charMax);
+    const int keyHash = abs(static_cast<int>(std::hash<std::string>{}(key)) % charMax);
 
-    for (char i : raw)
-        encoded += i + keyHash<charMax ? i + keyHash : i + keyHash - charMax;
+    for (const char chr : raw)
+        encoded += static_cast<char>(chr + keyHash<charMax ? chr + keyHash : chr + keyHash - charMax);
     return encoded;
 }
 
 // ShiftCharEncoding implementation
 std::string ShiftCharEncoding::name() { return "shiftchar"; }
 
-std::string ShiftCharEncoding::decode(std::string encoded, const std::string& key) {
+std::string ShiftCharEncoding::decode(const std::string encoded, const std::string& key) {
     std::string decoded;
     ShiftAllEncoding subEncoder = ShiftAllEncoding();
 
-    for (int i = 0; i<encoded.length(); i++) {
+    for (int i = 0; i < encoded.length(); i++) {
         std::string charKey = (!key.empty() ? key.substr(i % key.length(), 1) : "") + std::to_string(i);
         decoded += subEncoder.decode(encoded.substr(i, 1), charKey);
     }
@@ -72,11 +71,11 @@ std::string ShiftCharEncoding::decode(std::string encoded, const std::string& ke
     return decoded;
 }
 
-std::string ShiftCharEncoding::encode(std::string raw, const std::string& key) {
+std::string ShiftCharEncoding::encode(const std::string raw, const std::string& key) {
     std::string encoded;
     ShiftAllEncoding subEncoder = ShiftAllEncoding();
 
-    for (int i = 0; i<raw.length(); i++) {
+    for (int i = 0; i < raw.length(); i++) {
         std::string charKey = (!key.empty() ? key.substr(i % key.length(), 1) : "") + std::to_string(i);
         encoded += subEncoder.encode(raw.substr(i, 1), charKey);
     }

@@ -42,7 +42,7 @@ struct Encoding {
 /**
  * A plaintext encoding
  */
-struct PlainEncoding : public Encoding {
+struct PlainEncoding final : Encoding {
 
     std::string name() override;
 
@@ -55,7 +55,7 @@ struct PlainEncoding : public Encoding {
 /**
  * A shiftall encoding.  Encoded text is shifted up in characters uniformly based off of the key hash
  */
-struct ShiftAllEncoding : public Encoding {
+struct ShiftAllEncoding final : Encoding {
 
     std::string name() override;
 
@@ -68,7 +68,7 @@ struct ShiftAllEncoding : public Encoding {
 /**
  * A shiftchar encoding.  Encoded text is shifted up character by character based off of the hash of the key and the character index
  */
-struct ShiftCharEncoding : public Encoding {
+struct ShiftCharEncoding final : Encoding {
 
     std::string name() override;
 
