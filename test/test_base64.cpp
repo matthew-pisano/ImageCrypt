@@ -31,3 +31,28 @@ TEST_CASE("Test Base64 Encode") {
             "G1Qy/ogQNG9UaQ==" );
     }
 }
+
+
+TEST_CASE("Test Base64 Decode") {
+    SECTION("Test Empty String") {
+        REQUIRE( base64Decode("").empty() );
+    }
+
+    SECTION("Test Aligned String") {
+        REQUIRE( base64Decode("aGVsbG93") == "hellow" );
+        REQUIRE( base64Decode("aGFsdGluZyBwcm9ibGVt") == "halting problem" );
+        REQUIRE( base64Decode("VGhhdCdzIG5vIG1vb24uICBJdCdzIGEgc3BhY2Ugc3RhdGlvbiEh") ==
+            "That's no moon.  It's a space station!!" );
+        REQUIRE( base64Decode("G1Qy/ogQNG9U") ==
+            "\x1B\x54\x32\xFE\x88\x10\x34\x6F\x54" );
+    }
+
+    SECTION("Test Padded String") {
+        REQUIRE( base64Decode("aGVsbG8=") == "hello" );
+        REQUIRE( base64Decode("aGFsdGluZ3Byb2JsZQ==") == "haltingproble" );
+        REQUIRE( base64Decode("VGhhdCdzIG5vIG1vb24uICBJdCdzIGEgc3BhY2Ugc3RhdGlvbiE=") ==
+            "That's no moon.  It's a space station!" );
+        REQUIRE( base64Decode("G1Qy/ogQNG9UaQ==") ==
+            "\x1B\x54\x32\xFE\x88\x10\x34\x6F\x54\x69" );
+    }
+}
