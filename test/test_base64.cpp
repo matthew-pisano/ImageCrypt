@@ -18,6 +18,8 @@ TEST_CASE("Test Base64 Encode") {
         REQUIRE( base64Encode("halting problem") == "aGFsdGluZyBwcm9ibGVt" );
         REQUIRE( base64Encode("That's no moon.  It's a space station!!") ==
             "VGhhdCdzIG5vIG1vb24uICBJdCdzIGEgc3BhY2Ugc3RhdGlvbiEh" );
+        REQUIRE( base64Encode("\x1B\x54\x32\xFE\x88\x10\x34\x6F\x54") ==
+            "G1Qy/ogQNG9U" );
     }
 
     SECTION("Test Padded String") {
@@ -25,5 +27,7 @@ TEST_CASE("Test Base64 Encode") {
         REQUIRE( base64Encode("haltingproble") == "aGFsdGluZ3Byb2JsZQ==" );
         REQUIRE( base64Encode("That's no moon.  It's a space station!") ==
             "VGhhdCdzIG5vIG1vb24uICBJdCdzIGEgc3BhY2Ugc3RhdGlvbiE=" );
+        REQUIRE( base64Encode("\x1B\x54\x32\xFE\x88\x10\x34\x6F\x54\x69") ==
+            "G1Qy/ogQNG9UaQ==" );
     }
 }
