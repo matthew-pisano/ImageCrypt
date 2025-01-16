@@ -21,7 +21,9 @@ target_link_libraries(icrypt ${OpenCV_LIBS})
 find_package(Catch2 3 REQUIRED)
 add_executable(tests
         src/base64.cpp
-        test/test_base64.cpp)
+        src/encodings.cpp
+        test/test_base64.cpp
+        test/test_encodings.cpp)
 target_link_libraries(tests PRIVATE Catch2::Catch2WithMain)
 
 include(CTest)

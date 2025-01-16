@@ -18,7 +18,7 @@ Encoding* encodingFromName(const std::string& name) {
             return enc;
 
         availEncodings += enc->name() + ", ";
-        delete enc;
+        delete enc;  // Clean up the unused encoding
     }
 
     throw std::runtime_error("Encoding '" + name + "' not found!  Available encodings are: " + availEncodings);
