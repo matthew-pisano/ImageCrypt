@@ -23,7 +23,7 @@ std::string textFromFile(const std::string& txtPth) {
 
     std::string line;
     while (getline(inTxtFile, line)) fileText += line + "\n";
-    fileText.pop_back(); // Remove last newline character
+    if (!fileText.empty()) fileText.pop_back(); // Remove last newline character
     inTxtFile.close();
 
     return fileText;
@@ -52,11 +52,11 @@ std::string textFromStdin() {
  * @param enc The encoding to use
  * @param key The key to encode with
  */
-void encodeCommand(const std::string& inputText, cv::Mat& image, const std::string& outputImPth, int bitWidth, Encoding* enc, const std::string& key) {
-    std::string b64Text = base64Encode(inputText);
-    std::string hashEncText = enc->encode(b64Text, key);
-    int overflow = (int) hashEncText.length() - (image.rows * image.cols);
-    if (overflow>0)
+void encodeCommand(const std::string& inputText, const cv::Mat& image, const std::string& outputImPth, const int bitWidth, Encoding* enc, const std::string& key) {
+    const std::string b64Text = base64Encode(inputText);
+    const std::string hashEncText = enc->encode(b64Text, key);
+    const int overflow = static_cast<int>(hashEncText.length()) - (image.rows * image.cols);
+    if (overflow > 0)
         std::cerr << "Warning: The last " << overflow << " characters of text will be truncated!" << std::endl;
 
     // Encode the text into the image
@@ -75,7 +75,7 @@ void encodeCommand(const std::string& inputText, cv::Mat& image, const std::stri
  * @param enc The encoding to use
  * @param key The key to decode with
  */
-void decodeCommand(cv::Mat& image, const std::string& outputTxtPth, int bitWidth, Encoding* enc, const std::string& key) {
+void decodeCommand(cv::Mat& image, const std::string& outputTxtPth, const int bitWidth, Encoding* enc, const std::string& key) {
     // Decode the text from the image
     std::string hashEncText = decodeText(image, bitWidth);
     std::string b64Text = enc->decode(hashEncText, key);
@@ -89,7 +89,7 @@ void decodeCommand(cv::Mat& image, const std::string& outputTxtPth, int bitWidth
 }
 
 
-int main(int argc, char** argv) {
+int main(const int argc, char** argv) {
 
     CLI::App app{"Image-Based document encoder-decoder", "icrypt"};
     app.require_subcommand(1);
@@ -138,6 +138,10 @@ int main(int argc, char** argv) {
 
     std::string key;
     if (encoding != "plain" && !keyPth.empty()) key = textFromFile(keyPth);
+    if (key.empty()) {
+        std::cerr << "Warning: Key file is empty!  If you would like a blank key, omit the key file." << std::endl;
+        return -1;
+    }
 
     Encoding* enc = encodingFromName(encoding);
 
@@ -149,11 +153,11 @@ int main(int argc, char** argv) {
     }
 
     if (encode->parsed()) {
-        std::string inputText = !txtPth.empty() ? textFromFile(txtPth) : textFromStdin();
+        const std::string inputText = !txtPth.empty() ? textFromFile(txtPth) : textFromStdin();
         encodeCommand(inputText, image, outputImPth, bitWidth, enc, key);
     } else decodeCommand(image, txtPth, bitWidth, enc, key);
 
-    delete enc;
+    delete enc;  // Clean up encoding object
 
     return 0;
 }

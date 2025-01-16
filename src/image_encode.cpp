@@ -57,10 +57,10 @@ void addAlphaChannel(cv::Mat& image) {
 char getChar(const std::string& text, const int index) {
     if (index < text.length())
         return text[index];
-    if (index > text.length() + 1) { // Add noise outside the text to disguise the end of the message
+    if (index > text.length() + 1) {  // Add noise outside the text to disguise the end of the message
         std::random_device dev;
         std::mt19937 rng(dev());
-        std::uniform_int_distribution<std::mt19937::result_type> dist6(0,63); // Random character from base64
+        std::uniform_int_distribution<std::mt19937::result_type> dist6(0,63);  // Random character from base64
 
         return "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"[dist6(rng) % 64];
     }
@@ -86,24 +86,27 @@ void encodeText(cv::Mat& image, const std::string& text, const int bitWidth) {
 
             // 1-Bit encoding: encode the text over two pixels
             if (bitWidth == 1) {
+                // Add each quartet of bits in reverse order like [3210][7654]
                 const int shift = evenPixel ? 4 : 0;
-                for (int k = 0; k<4; k++)
+                for (int k = 0; k < 4; k++)
                     pixel[k] += (current >> (k + shift)) & 1;
                 // Process character every other pixel
                 if (!evenPixel) textIndex++;
             }
             // 2-Bit encoding: encode the text over one pixel
             else if (bitWidth == 2) {
-                for (int k = 0; k<4; k++)
+                // Add each pair of bits in reverse order like [67452301]
+                for (int k = 0; k < 4; k++)
                     pixel[k] += ((current >> (k * 2)) & 1) + (((current >> (k * 2 + 1)) & 1) << 1);
                 textIndex++;
             }
             // 4-Bit encoding: encode the text over two pixel channels
             else if (bitWidth == 4) {
-                for (int k = 0; k<2; k++) {
-                    for (int l = 0; l<4; l++)
+                // Add two octets of bits in order in each pixel like [01234567 01234567]
+                for (int k = 0; k < 2; k++) {
+                    for (int l = 0; l < 4; l++)  // First 4 bits in the first channel
                         pixel[k * 2 + 1] += ((current >> l) & 1) << (3 - l);
-                    for (int l = 4; l<8; l++)
+                    for (int l = 4; l < 8; l++)  // Last 4 bits in the second channel
                         pixel[k * 2] += ((current >> l) & 1) << (7 - l);
                     textIndex++;
                     current = getChar(text, textIndex);
