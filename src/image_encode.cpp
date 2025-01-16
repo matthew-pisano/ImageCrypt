@@ -173,8 +173,10 @@ std::string decodeText(cv::Mat& image, const int bitWidth) {
             }
 
             // Check for the end of the message
-            if (!text.empty() && text.back() == '\0')
+            if (!text.empty() && text.back() == '\0') {
+                while (text.back() == '\0') text.pop_back();  // Remove null bytes at the end of the message
                 return text;
+            }
         }
     }
 
