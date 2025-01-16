@@ -23,7 +23,7 @@ std::string base64Encode(const std::string& in) {
             valb -= 6;
         }
     }
-    if (valb>-6) out.push_back("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"[((val << 8) >> (valb + 8)) & 0x3F]);
+    if (valb > -6) out.push_back("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"[((val << 8) >> (valb + 8)) & 0x3F]);
     while (out.size() % 4) out.push_back('=');
     return out;
 }
@@ -43,7 +43,7 @@ std::string base64Decode(const std::string& in) {
         }
         val = (val << 6) + T[c];
         valb += 6;
-        if (valb>=0) {
+        if (valb >= 0) {
             out.push_back(static_cast<char>((val >> valb) & 0xFF));
             valb -= 8;
         }
