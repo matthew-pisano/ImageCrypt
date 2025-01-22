@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.27)
-project(icrypt)
+project(image-crypt)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -16,15 +16,15 @@ add_executable(icrypt src/main.cpp
 target_link_libraries(icrypt ${OpenCV_LIBS})
 
 find_package(Catch2 3 REQUIRED)
-add_executable(tests
+add_executable(icrypt-tests
         src/base64.cpp
         src/encodings.cpp
         src/image_encode.cpp
         test/test_base64.cpp
         test/test_encodings.cpp
         test/test_image_encode.cpp)
-target_link_libraries(tests PRIVATE Catch2::Catch2WithMain ${OpenCV_LIBS})
+target_link_libraries(icrypt-tests PRIVATE Catch2::Catch2WithMain ${OpenCV_LIBS})
 
 include(CTest)
 include(Catch)
-catch_discover_tests(tests)
+catch_discover_tests(icrypt-tests)
